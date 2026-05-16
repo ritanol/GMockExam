@@ -48,6 +48,9 @@ export default function GeometryBluebookEOCA() {
   const unansweredQuestions = questions.filter((q) => answers[q.id] === undefined);
   const flaggedQuestions = questions.filter((q) => flagged.includes(q.id));
   const score = questions.reduce((acc, q) => (answers[q.id] === q.answer ? acc + 1 : acc), 0);
+  const scorePercent = Math.round((score / questions.length) * 100);
+  const scoreColorClass = scorePercent >= 85 ? "text-[#15803d]" : "text-[#2454a6]";
+  const scoreRingClass = scorePercent >= 85 ? "border-[#15803d] bg-[#ecfdf3]" : "border-[#2454a6] bg-[#e8f0ff]";
   const elapsedTime = examSeconds - timeLeft;
   const progressPercent = ((current + 1) / questions.length) * 100;
 
@@ -181,6 +184,21 @@ export default function GeometryBluebookEOCA() {
         </header>
 
         <main className="max-w-6xl mx-auto px-6 py-8">
+          <section className={`mb-6 rounded-md border-2 ${scoreRingClass} bg-white p-10 text-center shadow-sm`}>
+            <div className="text-sm font-semibold uppercase tracking-[0.18em] text-[#52657a]">
+              Final Score
+            </div>
+            <div className={`mt-4 text-[8rem] font-bold leading-none tracking-tight ${scoreColorClass}`}>
+              {scorePercent}%
+            </div>
+            <p className="mt-4 text-2xl font-semibold text-[#1f2933]">
+              {score} correct out of {questions.length}
+            </p>
+            <p className="mt-2 text-sm text-[#52657a]">
+              {scorePercent >= 85 ? "Meets the 85% target." : "Below the 85% target."}
+            </p>
+          </section>
+
           <section className="grid gap-4 md:grid-cols-4">
             <ReviewStat label="Current score" value={`${score}/${questions.length}`} />
             <ReviewStat label="Answered" value={`${answeredCount}/${questions.length}`} />
