@@ -7,7 +7,6 @@ import {
   Clock3,
   Flag,
   Maximize2,
-  Send,
 } from "lucide-react";
 import { DiagramFrame } from "./components/GeometryDiagrams";
 import { MathText } from "./components/MathText";
@@ -404,21 +403,20 @@ export default function GeometryBluebookEOCA() {
           <div className="flex items-center gap-4 text-sm text-[#52657a]">
             <span>{answeredCount}/{questions.length} answered</span>
             <span>{flaggedQuestions.length} flagged</span>
-            <button
-              onClick={() => setIsReviewing(true)}
-              className="rounded-md bg-[#2454a6] px-5 py-3 font-semibold flex items-center gap-2 text-white hover:bg-[#1d4384]"
-            >
-              Review
-              <Send size={17} />
-            </button>
           </div>
 
           <button
-            onClick={() => setCurrent(Math.min(questions.length - 1, current + 1))}
-            disabled={current === questions.length - 1}
+            onClick={() => {
+              if (current === questions.length - 1) {
+                setIsReviewing(true);
+                return;
+              }
+
+              setCurrent(current + 1);
+            }}
             className="rounded-md bg-[#2454a6] px-6 py-3 font-semibold flex items-center gap-2 text-white disabled:opacity-40 hover:bg-[#1d4384]"
           >
-            Next
+            {current === questions.length - 1 ? "Finish" : "Next"}
             <ChevronRight size={18} />
           </button>
         </footer>
