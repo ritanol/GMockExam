@@ -50,6 +50,7 @@ export default function GeometryBluebookEOCA() {
   const flaggedQuestions = questions.filter((q) => flagged.includes(q.id));
   const score = questions.reduce((acc, q) => (answers[q.id] === q.answer ? acc + 1 : acc), 0);
   const elapsedTime = examSeconds - timeLeft;
+  const progressPercent = ((current + 1) / questions.length) * 100;
 
   const standardStats = questions.reduce(
     (stats, question) => {
@@ -127,11 +128,6 @@ export default function GeometryBluebookEOCA() {
 
   const requestFullscreen = () => {
     document.documentElement.requestFullscreen?.();
-  };
-
-  const goToQuestion = (index: number) => {
-    setCurrent(index);
-    setIsReviewing(false);
   };
 
   if (!hasStarted) {
@@ -221,14 +217,12 @@ export default function GeometryBluebookEOCA() {
                   title="Unanswered"
                   questions={unansweredQuestions}
                   allQuestions={questions}
-                  onSelect={goToQuestion}
                   emptyText="All questions have an answer."
                 />
                 <ReviewList
                   title="Flagged"
                   questions={flaggedQuestions}
                   allQuestions={questions}
-                  onSelect={goToQuestion}
                   emptyText="No questions are flagged."
                 />
               </div>
@@ -242,10 +236,9 @@ export default function GeometryBluebookEOCA() {
                 const selected = answers[question.id];
                 const isCorrect = selected === question.answer;
                 return (
-                  <button
+                  <div
                     key={question.id}
-                    onClick={() => goToQuestion(index)}
-                    className="text-left rounded-md border border-[#c8d1dc] bg-[#f8fafc] p-3 transition hover:border-[#2454a6]"
+                    className="text-left rounded-md border border-[#c8d1dc] bg-[#f8fafc] p-3"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <span className="font-semibold">Question {index + 1}</span>
@@ -255,7 +248,7 @@ export default function GeometryBluebookEOCA() {
                     </div>
                     <div className="text-xs text-[#52657a] mt-2">{question.standard}</div>
                     <div className="text-xs text-[#728197] mt-1">{formatTime(timeSpent[question.id] ?? 0)}</div>
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -267,49 +260,28 @@ export default function GeometryBluebookEOCA() {
 
   return (
     <div className="h-screen overflow-hidden bg-[#f4f6f8] text-[#1f2933] flex">
-      <aside className="w-[88px] shrink-0 border-r border-[#c8d1dc] bg-[#eef2f6]">
-        <div className="h-2 bg-[#2454a6]" />
-        <div className="h-[calc(100vh-8px)] overflow-y-auto p-3">
-          <div className="mb-3 text-center text-[11px] font-semibold uppercase tracking-wide text-[#52657a]">
-            Questions
-          </div>
-          <div className="grid grid-cols-1 gap-2 pb-24">
-            {questions.map((q, index) => {
-              const answered = answers[q.id] !== undefined;
-              const isFlagged = flagged.includes(q.id);
-
-              return (
-                <button
-                  key={q.id}
-                  onClick={() => setCurrent(index)}
-                  className={`h-9 rounded-md border text-sm font-semibold transition ${
-                    current === index
-                      ? "border-[#2454a6] bg-[#2454a6] text-white"
-                      : isFlagged
-                        ? "border-[#d99a00] bg-[#fff7d6] text-[#5c4200]"
-                        : answered
-                          ? "border-[#15803d] bg-[#dcfce7] text-[#14532d]"
-                          : "border-[#b8c4d2] bg-white text-[#1f2933] hover:border-[#2454a6]"
-                  }`}
-                  title={`Question ${index + 1}`}
-                >
-                  {index + 1}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </aside>
-
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="shrink-0 border-b border-[#c8d1dc] bg-white">
           <div className="h-2 bg-[#2454a6]" />
-          <div className="h-[72px] px-6 flex items-center justify-between">
-            <div>
+          <div className="h-[88px] px-6 flex items-center justify-between gap-8">
+            <div className="min-w-[260px]">
               <h1 className="text-xl font-semibold">Geometry Bluebook EOCA</h1>
               <p className="text-sm text-[#52657a]">
                 Question {current + 1} of {questions.length}
               </p>
+            </div>
+
+            <div className="max-w-xl flex-1">
+              <div className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.14em] text-[#52657a]">
+                <span>Progress</span>
+                <span>{answeredCount}/{questions.length} answered</span>
+              </div>
+              <div className="h-3 overflow-hidden rounded-full border border-[#b8c4d2] bg-[#eef2f6]">
+                <div
+                  className="h-full rounded-full bg-[#2454a6] transition-[width] duration-200"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
             </div>
 
             <div className="flex items-center gap-3">
@@ -419,7 +391,7 @@ export default function GeometryBluebookEOCA() {
           </aside>
         </div>
 
-        <footer className="fixed bottom-0 left-[88px] right-0 z-20 h-20 border-t border-[#c8d1dc] bg-white px-6 shadow-[0_-4px_16px_rgba(15,23,42,0.08)] flex items-center justify-between">
+        <footer className="fixed bottom-0 left-0 right-0 z-20 h-20 border-t border-[#c8d1dc] bg-white px-6 shadow-[0_-4px_16px_rgba(15,23,42,0.08)] flex items-center justify-between">
           <button
             onClick={() => setCurrent(Math.max(0, current - 1))}
             disabled={current === 0}
@@ -468,13 +440,11 @@ function ReviewList({
   title,
   questions,
   allQuestions,
-  onSelect,
   emptyText,
 }: {
   title: string;
   questions: Question[];
   allQuestions: Question[];
-  onSelect: (index: number) => void;
   emptyText: string;
 }) {
   return (
@@ -487,13 +457,12 @@ function ReviewList({
           {questions.map((question) => {
             const index = allQuestions.findIndex((candidate) => candidate.id === question.id);
             return (
-              <button
+              <div
                 key={question.id}
-                onClick={() => onSelect(index)}
-                className="w-full text-left rounded-md border border-[#c8d1dc] bg-[#f8fafc] px-3 py-2 hover:border-[#2454a6]"
+                className="w-full rounded-md border border-[#c8d1dc] bg-[#f8fafc] px-3 py-2"
               >
                 Question {index + 1}
-              </button>
+              </div>
             );
           })}
         </div>
